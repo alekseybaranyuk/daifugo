@@ -1,0 +1,941 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#50535e">
+</head>
+<body>
+<title>Карманный Дайфуго</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Golos+Text:wght@400;600;800&display=swap">
+<style>
+/* Layout: a handheld console on the left, a quiet rules sheet beside it; everything on the console scales in whole "LCD pixels" (--u). */
+:root{
+  --page:#dde2da; --ink:#1c2a1e; --muted:#566257; --line:#b9c2b6; --key:#8e2250; --keyink:#fff;
+  --lcd0:#0f380f; --lcd1:#306230; --lcd2:#8bac0f; --lcd3:#9bbc0f;
+  --shell:#c9c7c0; --shell-dark:#a9a79f; --bezel:#50535e; --brand:#2c3182;
+  --f-lcd:"Press Start 2P", ui-monospace, monospace;
+  --f-body:"Golos Text", system-ui, sans-serif;
+  --u:2px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--page:#131a14;--ink:#d8e1d5;--muted:#93a091;--line:#2d392e;--key:#d3739c;--keyink:#1a0710;color-scheme:dark}}
+:root[data-theme="dark"]{--page:#131a14;--ink:#d8e1d5;--muted:#93a091;--line:#2d392e;--key:#d3739c;--keyink:#1a0710;color-scheme:dark}
+
+html,body{min-height:100%}
+body{background:var(--page);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55}
+.wrap{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:40px;padding-inline:16px;padding-block:24px 48px}
+
+/* ---------- console shell ---------- */
+.gb{position:relative;box-sizing:border-box;width:calc(var(--u)*var(--gw,208));-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;background:var(--shell);color:#222;
+  border-radius:calc(var(--u)*6) calc(var(--u)*6) calc(var(--u)*38) calc(var(--u)*6);
+  padding:calc(var(--u)*10) calc(var(--u)*10) calc(var(--u)*16);
+  box-shadow: inset calc(var(--u)*-2) calc(var(--u)*-3) 0 var(--shell-dark), 0 18px 40px rgba(0,0,0,.25);
+  user-select:none;-webkit-user-select:none;touch-action:manipulation;flex:none}
+.gb::before{content:"";position:absolute;left:calc(var(--u)*10);right:calc(var(--u)*10);top:calc(var(--u)*4);height:1px;background:var(--shell-dark)}
+.bezel{position:relative;background:var(--bezel);padding:calc(var(--u)*10) calc(var(--u)*14) calc(var(--u)*12);
+  border-radius:calc(var(--u)*4) calc(var(--u)*4) calc(var(--u)*22) calc(var(--u)*4)}
+.bezel .cap{font-family:var(--f-body);font-weight:600;font-size:calc(var(--u)*4);letter-spacing:.12em;color:#b8b9c4;
+  position:absolute;top:calc(var(--u)*3);left:calc(var(--u)*14);right:calc(var(--u)*14);display:flex;align-items:center;gap:calc(var(--u)*3)}
+.bezel .cap i{flex:1;height:calc(var(--u)*1);background:#8a3a6a;box-shadow:0 calc(var(--u)*2) 0 #2f3a8a}
+.led{position:absolute;left:calc(var(--u)*4);top:calc(var(--u)*58);width:calc(var(--u)*4);height:calc(var(--u)*4);border-radius:50%;background:#e33;box-shadow:0 0 calc(var(--u)*3) #f55}
+.led+span{position:absolute;left:calc(var(--u)*2);top:calc(var(--u)*64);font-family:var(--f-body);font-size:calc(var(--u)*3);color:#b8b9c4;letter-spacing:.05em}
+.screen{position:relative;width:calc(var(--u)*160);height:calc(var(--u)*144);background:var(--lcd3);overflow:hidden;cursor:default;
+  box-shadow: inset 0 0 0 calc(var(--u)*1) rgba(15,56,15,.25)}
+.screen:focus-visible{outline:calc(var(--u)*1) solid var(--lcd2);outline-offset:calc(var(--u)*2)}
+.brand{font-family:var(--f-body);font-weight:800;font-style:italic;color:var(--brand);font-size:calc(var(--u)*8.5);letter-spacing:-.01em;
+  margin:calc(var(--u)*5) 0 0 calc(var(--u)*2);white-space:nowrap}
+.brand small{font-weight:600;font-size:calc(var(--u)*5);letter-spacing:.14em;margin-left:calc(var(--u)*3);font-style:normal}
+
+/* phone portrait: slimmer shell so the screen gets as wide as possible */
+html.phone{--gw:180}
+html.phone .gb{padding:calc(var(--u)*6) calc(var(--u)*4) calc(var(--u)*12)}
+html.phone .bezel{padding:calc(var(--u)*9) calc(var(--u)*6) calc(var(--u)*9)}
+html.phone .bezel .cap{left:calc(var(--u)*6);right:calc(var(--u)*6);top:calc(var(--u)*2.5)}
+html.phone .led,html.phone .led+span{display:none}
+html.phone .wrap{padding-block:12px 40px}
+/* ---------- LCD contents ---------- */
+.abs{position:absolute}
+.px{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
+.t{font-family:var(--f-lcd);font-size:calc(var(--u)*8);line-height:1;color:var(--lcd0);white-space:pre;letter-spacing:0}
+.t.big{font-size:calc(var(--u)*16)}
+.t.mid{color:var(--lcd1)}
+.t.inv{background:var(--lcd0);color:var(--lcd3);box-shadow:0 0 0 calc(var(--u)*1) var(--lcd0)}
+.box{border:calc(var(--u)*1) solid var(--lcd0);background:var(--lcd3);box-shadow:calc(var(--u)*1) calc(var(--u)*1) 0 var(--lcd1)}
+.slot{border:calc(var(--u)*1) dashed var(--lcd2)}
+.dim{opacity:.4}
+.card{cursor:pointer}
+.blink{animation:blink 1s steps(1) infinite}
+.t.lt{color:var(--lcd3)}
+.bar{background:var(--lcd0)}
+.screen.flash{animation:rflash .9s steps(1) 1}
+@keyframes rflash{0%,34%,68%{filter:invert(1) hue-rotate(180deg)}17%,51%,85%,100%{filter:none}}
+@keyframes blink{50%{opacity:0}}
+@media (prefers-reduced-motion: reduce){.blink,.screen.flash{animation:none}}
+
+/* ---------- controls ---------- */
+.ctrls{position:relative;height:calc(var(--u)*62);margin-top:calc(var(--u)*6)}
+.dpad{position:absolute;left:calc(var(--u)*6);top:calc(var(--u)*8);width:calc(var(--u)*44);height:calc(var(--u)*44)}
+.dpad::before,.dpad::after{content:"";position:absolute;background:#26272c;border-radius:calc(var(--u)*2);box-shadow:0 calc(var(--u)*1.5) 0 #0d0d10}
+.dpad::before{left:calc(var(--u)*15);top:0;width:calc(var(--u)*14);height:100%}
+.dpad::after{top:calc(var(--u)*15);left:0;height:calc(var(--u)*14);width:100%}
+.dpad button{position:absolute;z-index:2;width:calc(var(--u)*14);height:calc(var(--u)*14);background:transparent;border:0;padding:0;cursor:pointer;border-radius:calc(var(--u)*2)}
+.dpad button:active,.dpad button.on{background:rgba(255,255,255,.12)}
+.dpad button::after{content:"";position:absolute;left:50%;top:50%;border:calc(var(--u)*2.5) solid transparent;transform:translate(-50%,-50%)}
+.dpad .up{left:calc(var(--u)*15);top:0}.dpad .up::after{border-bottom-color:#55565d;margin-top:calc(var(--u)*-1)}
+.dpad .dn{left:calc(var(--u)*15);bottom:0}.dpad .dn::after{border-top-color:#55565d;margin-top:calc(var(--u)*1)}
+.dpad .lf{top:calc(var(--u)*15);left:0}.dpad .lf::after{border-right-color:#55565d;margin-left:calc(var(--u)*-1)}
+.dpad .rt{top:calc(var(--u)*15);right:0}.dpad .rt::after{border-left-color:#55565d;margin-left:calc(var(--u)*1)}
+.ab{position:absolute;width:calc(var(--u)*21);height:calc(var(--u)*21);border-radius:50%;border:0;background:#9a2257;cursor:pointer;
+  box-shadow:inset calc(var(--u)*-1) calc(var(--u)*-2) 0 #6a1238, 0 calc(var(--u)*1.5) 0 #7d7b73}
+.ab:active,.ab.on{transform:translateY(calc(var(--u)*1));box-shadow:inset calc(var(--u)*-1) calc(var(--u)*-1) 0 #6a1238}
+.ab span{position:absolute;top:calc(var(--u)*24);left:50%;transform:translateX(-50%);font-family:var(--f-lcd);font-size:calc(var(--u)*5);color:var(--brand)}
+.b{right:calc(var(--u)*34);top:calc(var(--u)*22)}
+.a{right:calc(var(--u)*6);top:calc(var(--u)*10)}
+.pills{display:flex;justify-content:center;gap:calc(var(--u)*14);margin-top:calc(var(--u)*6);padding-right:calc(var(--u)*20)}
+.pill{display:flex;flex-direction:column;align-items:center;gap:calc(var(--u)*5);background:none;border:0;cursor:pointer;padding:0}
+.pill i{display:block;width:calc(var(--u)*20);height:calc(var(--u)*6);border-radius:calc(var(--u)*3);background:#7c7e88;transform:rotate(-25deg);
+  box-shadow:0 0 0 calc(var(--u)*1.5) #b3b1a9}
+.pill:active i,.pill.on i{background:#5d5f68}
+.pill span{font-family:var(--f-lcd);font-size:calc(var(--u)*4);color:var(--brand);letter-spacing:.05em}
+.grille{position:absolute;right:calc(var(--u)*16);bottom:calc(var(--u)*12);display:flex;gap:calc(var(--u)*3.5);transform:rotate(-30deg)}
+.grille i{display:block;width:calc(var(--u)*2.5);height:calc(var(--u)*18);border-radius:calc(var(--u)*2);background:#9f9d95;box-shadow:inset calc(var(--u)*.6) calc(var(--u)*.6) 0 #7a786f}
+.gb button:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- rules sheet ---------- */
+.sheet{flex:1 1 300px;max-width:400px;min-width:0}
+.sheet h1{font-family:var(--f-lcd);font-size:18px;line-height:1.5;margin:4px 0 6px;text-wrap:balance;letter-spacing:.02em}
+.sheet .lede{color:var(--muted);margin:0 0 22px}
+.sheet h2{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:26px 0 10px;font-weight:600}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;align-items:baseline;margin:0}
+.keys dt{white-space:nowrap}
+.keys dd{margin:0;min-width:0}
+kbd{font-family:var(--f-lcd);font-size:9px;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:3px 5px;color:var(--ink);background:transparent}
+.rules{margin:0;padding-left:1.1em;display:grid;gap:7px}
+.rules b{font-weight:600}
+.ranks{font-family:var(--f-lcd);font-size:10px;letter-spacing:.06em;margin:8px 0 0;overflow-x:auto;white-space:nowrap;padding-bottom:2px}
+.ranks em{font-style:normal;color:var(--key)}
+.titles{display:grid;grid-template-columns:auto 1fr auto;gap:6px 12px;margin:0;font-variant-numeric:tabular-nums}
+.titles span:nth-child(3n){color:var(--muted)}
+.sound{margin-top:22px;color:var(--muted);font-size:13px}
+</style>
+
+<div class="wrap">
+  <div class="gb" id="gb">
+    <div class="bezel">
+      <div class="cap"><i></i><span>ЖК-ЭКРАН · 4 ОТТЕНКА</span><i></i></div>
+      <div class="led" id="led"></div><span>ПИТ.</span>
+      <div class="screen" id="screen" tabindex="0" aria-label="Игровой экран"></div>
+    </div>
+    <div class="brand">Карманный Дайфуго<small>КАРТЫ</small></div>
+    <div class="ctrls">
+      <div class="dpad">
+        <button class="up" data-k="up" aria-label="Вверх: выбрать карту"></button>
+        <button class="dn" data-k="down" aria-label="Вниз: снять выбор"></button>
+        <button class="lf" data-k="left" aria-label="Влево"></button>
+        <button class="rt" data-k="right" aria-label="Вправо"></button>
+      </div>
+      <button class="ab b" data-k="b" aria-label="Кнопка B: пас"><span>B</span></button>
+      <button class="ab a" data-k="a" aria-label="Кнопка A: выбрать карту"><span>A</span></button>
+    </div>
+    <div class="pills">
+      <button class="pill" data-k="select" aria-label="SELECT: звук"><i></i><span>SELECT</span></button>
+      <button class="pill" data-k="start" aria-label="START: сыграть"><i></i><span>START</span></button>
+    </div>
+    <div class="grille" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="sr" aria-live="polite" id="live"></div>
+  </div>
+
+  <section class="sheet">
+    <h1>Карманный Дайфуго</h1>
+    <p class="lede">Японская карточная игра «Дайфуго» («Великий богач») в стиле карточных сборников для Game Boy. Вы и три компьютерных соперника, пять раундов, три уровня сложности. Цель раунда: первым избавиться от всех карт.</p>
+
+    <h2>Управление</h2>
+    <dl class="keys">
+      <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>выбор карты в руке</dd>
+      <dt><kbd>A</kbd> / <kbd>Z</kbd> / <kbd>↑</kbd></dt><dd>отметить карту (можно несколько одного достоинства)</dd>
+      <dt><kbd>START</kbd> / <kbd>Enter</kbd></dt><dd>сыграть отмеченные карты</dd>
+      <dt><kbd>B</kbd> / <kbd>X</kbd></dt><dd>снять отметку, а если ничего не отмечено, пас</dd>
+      <dt><kbd>SELECT</kbd> / <kbd>Shift</kbd></dt><dd>звук вкл/выкл</dd>
+      <dt>Меню</dt><dd><kbd>↑</kbd> <kbd>↓</kbd> пункт, <kbd>←</kbd> <kbd>→</kbd> изменить: уровень соперников и свержение</dd>
+    </dl>
+    <p class="sound">По картам на экране можно щёлкать мышью или нажимать пальцем.</p>
+
+    <h2>Правила</h2>
+    <ol class="rules">
+      <li>Сила карт от слабой к сильной:
+        <div class="ranks">3 4 5 6 7 8 9 10 J Q K A <em>2</em> <em>JK</em></div></li>
+      <li>Первый ход делает игрок с <b>тройкой бубен</b>. Он кладёт одиночную карту, пару, тройку или каре одного достоинства.</li>
+      <li>Следующие игроки кладут <b>столько же карт, но сильнее</b>, или пасуют. Когда все спасовали, стол очищается, и новый круг начинает тот, кто сыграл последним.</li>
+      <li><b>Джокер</b> бьёт любую одиночную карту и может заменять любую карту в комбинации. Одиночного джокера бьёт только <b>тройка пик</b>.</li>
+      <li><b>Восьмёрка</b> сразу очищает стол, и сыгравший ходит снова.</li>
+      <li><b>Каре</b> устраивает <b>революцию</b>: порядок силы переворачивается до следующего каре или конца раунда. Экран мигает, а в верхней строке горит «РЕВ: 3 СИЛЬНЕЕ 2». Джокер остаётся сильнейшим.</li>
+      <li>Уровни соперников: <b>лёгкий</b> играет жадно, <b>средний</b> считает вышедшие карты и планирует руку, <b>сильный</b> вдобавок перед каждым ходом разыгрывает сотни вариантов раздачи до конца раунда.</li>
+      <li><b>Свержение</b> (можно выключить в меню): если действующий дайфуго не вышел первым, он сразу получает последнее место.</li>
+      <li>Со второго раунда перед раздачей проходит обмен: дайхинмин отдаёт дайфуго две лучшие карты, хинмин отдаёт фуго одну, а те возвращают любые карты на свой выбор. Полученные карты показываются отдельно, а в руке помечаются маленьким плюсом.</li>
+    </ol>
+
+    <h2>Звания и очки</h2>
+    <div class="titles">
+      <span>1-е</span><span>Дайфуго, великий богач</span><span>3</span>
+      <span>2-е</span><span>Фуго, богач</span><span>2</span>
+      <span>3-е</span><span>Хинмин, бедняк</span><span>1</span>
+      <span>4-е</span><span>Дайхинмин, нищий</span><span>0</span>
+    </div>
+  </section>
+</div>
+
+<script>
+/* ================= data & rules ================= */
+var RANKS=['3','4','5','6','7','8','9','10','J','Q','K','A','2'];
+var NAMES=['ТЫ','ЮКИ','КЭН','МАМИ'];
+var TITLES=['ДАЙФУГО','ФУГО','ХИНМИН','ДАЙХИНМИН'];
+var POINTS=[3,2,1,0];
+var ROUNDS=5;
+var LEVELS=['ЛЕГКИЙ','СРЕДНИЙ','СИЛЬНЫЙ'];
+var R8=5; // index of rank "8"
+
+var G={phase:'title',hands:[[],[],[],[]],cur:0,trick:null,pile:null,pileDim:false,lastPlayer:-1,passCount:0,
+  passed:[false,false,false,false],rev:false,finished:[],prevOrder:null,round:0,scores:[0,0,0,0],
+  cursor:0,sel:new Set(),log:['',''],exNeed:0,exTo:-1,deck:[],seen:new Set(),known:[[],[],[],[]],budget:450,maxWorlds:80,fallen:[],level:2,miyako:true,menu:0};
+
+function makeDeck(){
+  var d=[],id=0;
+  for(var r=0;r<13;r++) for(var s of ['S','H','D','C']) d.push({id:id++,r:r,s:s,joker:false});
+  d.push({id:id++,r:13,s:'J',joker:true});
+  for(var i=d.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=d[i];d[i]=d[j];d[j]=t;}
+  return d;
+}
+function strength(c,rev){ if(c.joker) return 13; return rev? 12-c.r : c.r; }
+function sortHand(h){ h.sort(function(a,b){return strength(a,G.rev)-strength(b,G.rev) || a.s.localeCompare(b.s);}); }
+function isActive(p){ return G.finished.indexOf(p)<0 && G.fallen.indexOf(p)<0; }
+function activeCount(){ return 4-G.finished.length-G.fallen.length; }
+function nextActive(p){ for(var i=1;i<=4;i++){var q=(p+i)%4; if(isActive(q)) return q;} return p; }
+
+function comboInfo(cards){
+  if(!cards.length) return {ok:false,err:'ВЫБЕРИ КАРТЫ'};
+  if(cards.length>4) return {ok:false,err:'МАКСИМУМ 4 КАРТЫ'};
+  var nj=cards.filter(function(c){return !c.joker;});
+  if(nj.length && !nj.every(function(c){return c.r===nj[0].r;})) return {ok:false,err:'РАЗНЫЕ ДОСТОИНСТВА'};
+  if(!nj.length) return {ok:true,count:1,value:100,joker:true,rank:null,is8:false,spade3:false};
+  var r=nj[0].r;
+  return {ok:true,count:cards.length,value:G.rev?12-r:r,joker:false,rank:r,is8:r===R8,
+    spade3:cards.length===1&&cards[0].r===0&&cards[0].s==='S'};
+}
+function canBeat(info,trick){
+  if(!trick) return true;
+  if(info.count!==trick.count) return false;
+  if(trick.joker && info.spade3) return true;
+  return info.value>trick.value;
+}
+function genCombos(hand){
+  var out=[],by={},jk=hand.filter(function(c){return c.joker;})[0];
+  hand.forEach(function(c){ if(!c.joker){(by[c.r]=by[c.r]||[]).push(c);} });
+  Object.keys(by).forEach(function(k){
+    var g=by[k];
+    g.forEach(function(c){out.push([c]);});
+    for(var n=2;n<=g.length;n++) out.push(g.slice(0,n));
+    if(jk) for(var m=1;m<=Math.min(g.length,3);m++) out.push(g.slice(0,m).concat([jk]));
+  });
+  if(jk) out.push([jk]);
+  return out;
+}
+function legalMoves(p){
+  return genCombos(G.hands[p]).map(function(c){return {c:c,info:comboInfo(c)};})
+    .filter(function(o){return o.info.ok && canBeat(o.info,G.trick);});
+}
+
+/* ================= computer players ================= */
+// Level 0: the original greedy player (kept as "ЛЕГКИЙ").
+function cpuEasy(p){
+  var hand=G.hands[p], opts=legalMoves(p);
+  if(!opts.length) return null;
+  for(var i=0;i<opts.length;i++) if(opts[i].c.length===hand.length) return opts[i].c;
+  var nj=hand.filter(function(c){return !c.joker;});
+  var avg=nj.reduce(function(s,c){return s+strength(c,G.rev);},0)/Math.max(1,nj.length);
+  var best=null,bc=Infinity;
+  opts.forEach(function(o){
+    var info=o.info,c=o.c,cost;
+    var usesJ=c.some(function(x){return x.joker;});
+    if(info.joker){ cost=150+(hand.length>3?200:0); }
+    else{
+      cost=info.value*10;
+      var gs=nj.filter(function(x){return x.r===info.rank;}).length;
+      var used=c.length-(usesJ?1:0);
+      if(used<gs) cost+=30;
+      if(usesJ) cost+= hand.length>4?120:20;
+      if(info.value>=10 && hand.length>5) cost+=40;
+      if(info.is8) cost-= G.trick?30:0;
+      if(!G.trick) cost-=c.length*4;
+      if(c.length===4 && !G.trick) cost+= avg<6 ? -200 : 100;
+    }
+    cost+=Math.random()*6;
+    if(cost<bc){bc=cost;best=c;}
+  });
+  if(G.trick && bc>=140 && hand.length>4 && Math.random()<0.7) return null;
+  return best;
+}
+
+// Cards this player cannot see: everything not in own hand and not played yet.
+// Level 1 does not count cards: it treats every card outside its hand as still live.
+function unseenFor(p,lvl){
+  var own=new Set(G.hands[p].map(function(c){return c.id;}));
+  return G.deck.filter(function(c){ return !own.has(c.id) && (lvl<2 || !G.seen.has(c.id)); });
+}
+// Can any combination made from `pool` beat a play of `count` cards with `value`?
+function beatableBy(pool,count,value,isJoker){
+  if(isJoker) return pool.some(function(c){return c.r===0&&c.s==='S';});
+  var jk=pool.some(function(c){return c.joker;})?1:0;
+  if(count===1&&jk) return true;
+  var cnt={};
+  pool.forEach(function(c){ if(!c.joker) cnt[c.r]=(cnt[c.r]||0)+1; });
+  for(var r in cnt){ var v=G.rev?12-r:+r; if(v>value && cnt[r]+jk>=count) return true; }
+  return false;
+}
+// Split a hand into natural moves: one move per rank, joker on its own.
+function movesOf(hand,pool){
+  var by={},jk=null,out=[];
+  hand.forEach(function(c){ if(c.joker) jk=c; else (by[c.r]=by[c.r]||[]).push(c); });
+  Object.keys(by).forEach(function(k){
+    var r=+k, g=by[k], v=G.rev?12-r:r;
+    out.push({cards:g,count:g.length,value:v,rank:r,is8:r===R8,joker:false,
+      boss: r===R8 || !beatableBy(pool,g.length,v,false)});
+  });
+  if(jk) out.push({cards:[jk],count:1,value:100,rank:null,is8:false,joker:true,boss:!beatableBy(pool,1,100,true)});
+  out.sort(function(a,b){return a.value-b.value;});
+  return out;
+}
+function avgStrength(hand,rev){
+  var nj=hand.filter(function(c){return !c.joker;});
+  return nj.reduce(function(s,c){return s+(rev?12-c.r:c.r);},0)/Math.max(1,nj.length);
+}
+function oppMin(p){
+  var m=99; for(var q=0;q<4;q++) if(q!==p&&isActive(q)) m=Math.min(m,G.hands[q].length); return m;
+}
+function without(hand,cards){ var ids=new Set(cards.map(function(c){return c.id;})); return hand.filter(function(c){return !ids.has(c.id);}); }
+
+function aiLead(p,lvl){
+  var hand=G.hands[p], pool=unseenFor(p,lvl), mv=movesOf(hand,pool);
+  var nonBoss=mv.filter(function(m){return !m.boss;}), boss=mv.filter(function(m){return m.boss;});
+  var danger=oppMin(p);
+  // Revolution: play a quad (or triple + joker) when the flipped order suits the rest of the hand.
+  var jk=hand.filter(function(c){return c.joker;})[0];
+  for(var i=0;i<mv.length;i++){
+    var m=mv[i]; if(m.joker) continue;
+    var quad=m.count===4?m.cards:(m.count===3&&jk?m.cards.concat([jk]):null);
+    if(!quad) continue;
+    var rest=without(hand,quad);
+    if(avgStrength(rest,!G.rev)-avgStrength(rest,G.rev)>1.2) return quad;
+  }
+  // Winning line: every move but one is unbeatable, so cash them in and finish with the last.
+  if(boss.length && nonBoss.length<=1){
+    var b=boss.filter(function(m){return !m.joker;}).sort(function(a,b){return (b.is8-a.is8)||(b.count-a.count);})[0]||boss[0];
+    return b.cards;
+  }
+  if(!nonBoss.length) return mv[0].cards;
+  // Dump the weakest move; multi-card groups are harder to answer, so they go out a little earlier.
+  var cand=nonBoss.slice().sort(function(a,b){return (a.value-(a.count-1)*1.5)-(b.value-(b.count-1)*1.5);});
+  if(danger===1){
+    var multi=cand.filter(function(m){return m.count>=2;});
+    if(multi.length) return multi[0].cards;
+    var singles=mv.filter(function(m){return m.count===1;});
+    return singles[singles.length-1].cards;           // highest single, so the last card can't answer
+  }
+  if(danger===2){
+    var notPair=cand.filter(function(m){return m.count!==2;});
+    if(notPair.length) return notPair[0].cards;
+  }
+  return cand[0].cards;
+}
+
+function aiFollow(p,lvl){
+  var hand=G.hands[p], opts=legalMoves(p);
+  if(!opts.length) return null;
+  var pool=unseenFor(p,lvl), mv=movesOf(hand,pool);
+  var groupSize={}; mv.forEach(function(m){ if(!m.joker) groupSize[m.rank]=m.count; });
+  var owner=G.trick.by, ownerCards=isActive(owner)?G.hands[owner].length:99;
+  var danger=Math.min(oppMin(p), ownerCards);
+  var best=null,bc=Infinity,bestWin=false;
+  opts.forEach(function(o){
+    var c=o.c, info=o.info, usesJ=c.some(function(x){return x.joker;});
+    var rest=without(hand,c), restMv=movesOf(rest,pool);
+    var restNon=restMv.filter(function(m){return !m.boss;}).length;
+    var takes = info.is8 || !beatableBy(pool,info.count,info.value,info.joker);
+    var win = takes && restNon<=1;
+    var natural=info.joker?0:c.length-(usesJ?1:0);
+    var split = !info.joker && natural<(groupSize[info.rank]||0);
+    var cost = info.value*3 + restMv.length*6;
+    if(split) cost+=18;
+    if(usesJ || info.joker) cost+= rest.length>3?45:5;
+    if(info.is8) cost-=12;
+    if(takes && !info.is8 && restMv.length>3) cost+=15;   // don't burn control cards early
+    if(win) cost-=500;
+    if(cost<bc){bc=cost;best=c;bestWin=win;}
+  });
+  if(bestWin) return best;
+  var bi=comboInfo(best), bUsesJ=best.some(function(x){return x.joker;});
+  // Someone is close to going out: fight for the table with whatever it takes.
+  if(danger<=2){
+    var strongest=opts.slice().sort(function(a,b){return b.info.value-a.info.value;})[0];
+    var stop=opts.filter(function(o){return o.info.is8||!beatableBy(pool,o.info.count,o.info.value,o.info.joker);});
+    if(stop.length) return stop.sort(function(a,b){return a.info.value-b.info.value;})[0].c;
+    return strongest.c;
+  }
+  var many=hand.length>6;
+  // Save jokers and top cards instead of spending them on a cheap trick.
+  if((bUsesJ||bi.joker) && many) return null;
+  if(bi.value>=10 && many && G.trick.value<7 && !bi.is8) return null;
+  var split=!bi.joker && (best.length-(bUsesJ?1:0))<(groupSize[bi.rank]||0);
+  if(split && many && bi.value>=7) return null;
+  return best;
+}
+
+function seatLevel(p){ return G.levels?G.levels[p]:G.level; }
+function cpuPick(p){
+  var lvl=seatLevel(p);
+  if(lvl===0) return cpuEasy(p);
+  var hand=G.hands[p], opts=legalMoves(p);
+  if(!opts.length) return null;
+  for(var i=0;i<opts.length;i++) if(opts[i].c.length===hand.length) return opts[i].c;
+  if(lvl===2) return searchPick(p,G.budget);
+  return G.trick ? aiFollow(p,2) : aiLead(p,2);
+}
+/* ---- look-ahead search for the strong level ----
+   For every distinct move (and pass), deal the unseen cards to the opponents at random many times,
+   play each deal to the end of the round with a fast policy, and keep the move with the best average place. */
+var SIM=false;
+function now(){ return (typeof performance!=='undefined'&&performance.now)?performance.now():Date.now(); }
+function fastPick(p){
+  var hand=G.hands[p], opts=legalMoves(p);
+  if(!opts.length) return null;
+  for(var i=0;i<opts.length;i++) if(opts[i].c.length===hand.length) return opts[i].c;
+  var by={}; hand.forEach(function(c){ if(!c.joker) by[c.r]=(by[c.r]||0)+1; });
+  function hasJ(c){ return c.some(function(x){return x.joker;}); }
+  if(!G.trick){
+    var best=null,bv=1e9;
+    opts.forEach(function(o){
+      if(o.info.joker||hasJ(o.c)||o.c.length!==by[o.info.rank]) return;
+      var v=o.info.value-(o.c.length-1)*1.5+(o.info.is8?3:0);
+      if(v<bv){bv=v;best=o.c;}
+    });
+    return best||opts[0].c;
+  }
+  var nat=opts.filter(function(o){ return !o.info.joker && !hasJ(o.c) && o.c.length===by[o.info.rank]; });
+  var from=nat.length?nat:opts, b=null;
+  from.forEach(function(o){ if(!b || o.info.value<b.info.value) b=o; });
+  var strong=b.info.joker||hasJ(b.c)||b.info.value>=10;
+  if(strong && hand.length>4 && Math.random()<0.6) return null;
+  if(!nat.length && hand.length>5 && Math.random()<0.5) return null;
+  return b.c;
+}
+function cloneState(S){
+  var W={}; for(var k in S) W[k]=S[k];
+  W.hands=S.hands.map(function(h){return h.slice();});
+  W.finished=S.finished.slice(); W.fallen=S.fallen.slice(); W.passed=S.passed.slice();
+  W.scores=S.scores.slice(); W.seen=new Set(S.seen); W.log=[]; W.sel=new Set();
+  return W;
+}
+// A random deal of the cards p cannot see, consistent with hand sizes and with cards p knows about.
+function sampleWorld(p){
+  var W=cloneState(G), fixed=[[],[],[],[]], fixedIds=new Set();
+  (G.known[p]||[]).forEach(function(k){
+    if(!G.seen.has(k.card.id) && k.holder!==p && fixed[k.holder].length<G.hands[k.holder].length){ fixed[k.holder].push(k.card); fixedIds.add(k.card.id); }
+  });
+  var pool=[];
+  for(var q=0;q<4;q++) if(q!==p) G.hands[q].forEach(function(c){ if(!fixedIds.has(c.id)) pool.push(c); });
+  for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+  for(q=0;q<4;q++) if(q!==p){
+    var need=G.hands[q].length-fixed[q].length;
+    W.hands[q]=fixed[q].concat(pool.splice(0,need));
+  }
+  return W;
+}
+function heurPick(q){
+  var h=G.hands[q], o=legalMoves(q);
+  if(!o.length) return null;
+  for(var i=0;i<o.length;i++) if(o[i].c.length===h.length) return o[i].c;
+  return G.trick?aiFollow(q,2):aiLead(q,2);
+}
+function simulate(W,p,move){
+  var saved=G, wasSim=SIM; G=W; SIM=true;
+  try{
+    if(move) doPlay(p,move); else doPass(p);
+    var it=0;
+    while(G.phase==='play' && it++<400){
+      var q=G.cur, c=heurPick(q);
+      if(!c && !G.trick) c=legalMoves(q)[0].c;
+      if(c) doPlay(q,c); else doPass(q);
+    }
+    var place=G.prevOrder?G.prevOrder.indexOf(p):3;
+    return POINTS[place]+(place===0?0.5:0);   // a little extra for the top spot: it wins the exchange too
+  } finally { G=saved; SIM=wasSim; }
+}
+function sameCards(a,b){ return a&&b&&a.length===b.length&&a.every(function(x){return b.some(function(y){return y.id===x.id;});}); }
+function searchPick(p,budgetMs){
+  var hand=G.hands[p], opts=legalMoves(p);
+  if(!opts.length) return null;
+  for(var i=0;i<opts.length;i++) if(opts[i].c.length===hand.length) return opts[i].c;
+  var heur=heurPick(p);
+  // Candidates: the planner's own choice, passing, and the cheapest few alternatives.
+  var seen={}, cands=[];
+  function add(c){
+    var key=c?c.map(function(x){return x.id;}).sort().join(','):'pass';
+    if(!seen[key]){ seen[key]=1; cands.push({c:c,sum:0,n:0,heur:c?sameCards(c,heur):heur===null}); }
+  }
+  add(heur);
+  if(G.trick) add(null);
+  var dedup={};
+  opts.slice().sort(function(a,b){return a.info.value-b.info.value||a.c.length-b.c.length;}).forEach(function(o){
+    var uj=o.c.some(function(x){return x.joker;});
+    var key=o.info.joker?'J':o.c.length+':'+o.info.rank+':'+(uj?1:0)+':'+(o.info.spade3?1:0);
+    if(!dedup[key] && cands.length<6){ dedup[key]=1; add(o.c); }
+  });
+  if(cands.length===1) return cands[0].c;
+  var t0=now(), budget=budgetMs||300, worlds=0, maxW=G.maxWorlds||80;
+  while(worlds<maxW){
+    var world=sampleWorld(p);
+    for(var j=0;j<cands.length;j++){ var cd=cands[j]; cd.sum+=simulate(cloneState(world),p,cd.c); cd.n++; }
+    worlds++;
+    if(worlds>=8 && now()-t0>budget) break;
+  }
+  // Leave the plan only when the look-ahead finds a clearly better move.
+  var base=cands.filter(function(c){return c.heur;})[0], best=base, bs=base.sum/base.n+0.2;
+  cands.forEach(function(cd){ var s=cd.sum/cd.n; if(s>bs){bs=s;best=cd;} });
+  return best.c;
+}
+// Returning cards after the exchange: give away lone low cards, keep pairs, 8s and the 3 of spades.
+function cpuGiveBack(p,n){
+  if(seatLevel(p)===0) return weakestOf(p,n);
+  var hand=G.hands[p], cnt={};
+  hand.forEach(function(c){ if(!c.joker) cnt[c.r]=(cnt[c.r]||0)+1; });
+  return hand.slice().sort(function(a,b){
+    function sc(c){ if(c.joker) return 99; return c.r+(cnt[c.r]>1?4:0)+(c.r===R8?6:0)+(c.r===0&&c.s==='S'?3:0); }
+    return sc(a)-sc(b);
+  }).slice(0,n);
+}
+
+/* ================= flow ================= */
+function log(s){ if(SIM) return; G.log.push(s); if(G.log.length>2) G.log=G.log.slice(-2); announce(s); }
+function desc(n){ return ['','КАРТА','ПАРА','ТРОЙКА','КАРЕ'][n]; }
+function clearTrick(){ if(G.trick){G.pile=G.trick; G.pileDim=true;} G.trick=null; G.passCount=0; G.passed=[false,false,false,false]; }
+
+function doPlay(p,cards){
+  var ids=new Set(cards.map(function(c){return c.id;}));
+  G.hands[p]=G.hands[p].filter(function(c){return !ids.has(c.id);});
+  cards.forEach(function(c){G.seen.add(c.id);});
+  if(p===0&&G.newIds) G.newIds=new Set();
+  log(NAMES[p]+': '+(cards.length===1&&cards[0].joker?'ДЖОКЕР':desc(cards.length)));
+  if(cards.length===4){ G.rev=!G.rev; G.hands.forEach(sortHand); log(G.rev?'РЕВОЛЮЦИЯ! 3>2':'ПОРЯДОК ВЕРНУЛСЯ'); sfx('rev'); flashScreen(); }
+  else sfx(p===0?'play':'cpu');
+  var info=comboInfo(cards);
+  G.trick={cards:cards.slice(),count:cards.length,value:info.value,joker:info.joker,by:p};
+  G.pile=G.trick; G.pileDim=false;
+  G.lastPlayer=p; G.passCount=0; G.passed=[false,false,false,false];
+  if(!G.hands[p].length){
+    G.finished.push(p);
+    log(NAMES[p]+': '+G.finished.length+'-Е МЕСТО');
+    var df=G.prevOrder&&G.prevOrder[0];
+    if(G.miyako && G.prevOrder && G.finished.length===1 && p!==df && isActive(df)){
+      G.fallen.push(df); log('СВЕРЖЕН: '+NAMES[df]); sfx('rev');
+    }
+    if(activeCount()<=1){ endRound(); return; }
+  }
+  if(info.is8){ clearTrick(); log('8: СТОЛ ОЧИЩЕН'); G.cur=isActive(p)?p:nextActive(p); return; }
+  G.cur=nextActive(p);
+}
+function doPass(p){
+  log(NAMES[p]+': ПАС'); if(p===0) sfx('pass');
+  G.passed[p]=true; G.passCount++;
+  var need=activeCount()-(isActive(G.lastPlayer)?1:0);
+  if(G.passCount>=need){
+    clearTrick();
+    var lead=isActive(G.lastPlayer)?G.lastPlayer:nextActive(G.lastPlayer);
+    log(lead===0?'СТОЛ ТВОЙ':NAMES[lead]+' НАЧИНАЕТ');
+    G.cur=lead;
+  } else G.cur=nextActive(p);
+}
+function endRound(){
+  for(var q=0;q<4;q++) if(isActive(q)) G.finished.push(q);
+  G.finished=G.finished.concat(G.fallen); G.fallen=[];
+  G.prevOrder=G.finished.slice();
+  G.prevOrder.forEach(function(p,i){G.scores[p]+=POINTS[i];});
+  G.trick=null;
+  G.phase=G.round>=ROUNDS?'matchEnd':'roundEnd';
+  sfx(G.prevOrder[0]===0?'win':'end');
+}
+function strongestOf(p,n){ return G.hands[p].slice().sort(function(a,b){return strength(b,false)-strength(a,false);}).slice(0,n); }
+function weakestOf(p,n){ return G.hands[p].slice().sort(function(a,b){return strength(a,false)-strength(b,false);}).slice(0,n); }
+function give(from,to,cards){
+  var ids=new Set(cards.map(function(c){return c.id;}));
+  G.hands[from]=G.hands[from].filter(function(c){return !ids.has(c.id);});
+  G.hands[to]=G.hands[to].concat(cards); sortHand(G.hands[to]); sortHand(G.hands[from]);
+}
+function takeIncoming(){
+  var inc=G.incoming; if(!inc) return;
+  G.hands[0]=G.hands[0].concat(inc.got); sortHand(G.hands[0]);
+  G.newIds=new Set(inc.got.map(function(c){return c.id;}));
+  G.incoming=null; G.phase=G.after;
+  log('НОВЫЕ КАРТЫ: '+inc.got.length+' (+)');
+  if(G.phase==='exchange') log('ВЕРНИ '+G.exNeed+': '+NAMES[G.exTo]);
+  else if(G.cur!==0) log(NAMES[G.cur]+' НАЧИНАЕТ');
+  sfx('play');
+}
+function remember(from,to,cards){ cards.forEach(function(c){ G.known[from].push({card:c,holder:to}); }); }
+function startMatch(){ G.scores=[0,0,0,0]; G.round=0; G.prevOrder=null; startRound(); }
+function startRound(){
+  G.round++; G.rev=false; G.trick=null; G.pile=null; G.finished=[]; G.fallen=[]; G.newIds=new Set(); G.incoming=null; G.seen=new Set(); G.known=[[],[],[],[]]; G.passed=[false,false,false,false];
+  G.passCount=0; G.lastPlayer=-1; G.sel=new Set(); G.log=['',''];
+  var d=makeDeck(); G.deck=d.slice(); G.hands=[[],[],[],[]];
+  var start=Math.floor(Math.random()*4);
+  d.forEach(function(c,i){G.hands[(start+i)%4].push(c);});
+  G.hands.forEach(sortHand);
+  G.phase='play';
+  if(!G.prevOrder){
+    for(var p=0;p<4;p++) if(G.hands[p].some(function(c){return c.r===0&&c.s==='D';})) G.cur=p;
+    log('РАУНД '+G.round+' НАЧАЛСЯ'); log('3 БУБЕН У '+(G.cur===0?'ТЕБЯ':NAMES[G.cur]));
+  } else {
+    var o=G.prevOrder, df=o[0], fg=o[1], hm=o[2], dh=o[3];
+    var t1=strongestOf(dh,2), t2=strongestOf(hm,1); give(dh,df,t1); give(hm,fg,t2); remember(dh,df,t1); remember(hm,fg,t2);
+    if(dh===0||hm===0) log('ОТДАНО ЛУЧШИХ: '+(dh===0?2:1)); else log('ОБМЕН КАРТАМИ');
+    G.cur=dh;
+    if(df!==0){ var b1=cpuGiveBack(df,2); give(df,dh,b1); remember(df,dh,b1); }
+    if(fg!==0){ var b2=cpuGiveBack(fg,1); give(fg,hm,b2); remember(fg,hm,b2); }
+    if(df===0||fg===0){
+      G.phase='exchange'; G.exNeed=df===0?2:1; G.exTo=df===0?dh:hm;
+      log('ВЕРНИ '+G.exNeed+': '+NAMES[G.exTo]);
+    } else log(dh===0?'ТЫ НАЧИНАЕШЬ':NAMES[dh]+' НАЧИНАЕТ');
+    // Show the player what changed hands before the cards join the hand.
+    var inc=null;
+    if(df===0) inc={from:dh,got:t1,gave:null};
+    else if(fg===0) inc={from:hm,got:t2,gave:null};
+    else if(dh===0) inc={from:df,got:b1,gave:t1};
+    else if(hm===0) inc={from:fg,got:b2,gave:t2};
+    if(inc){
+      var ids=new Set(inc.got.map(function(c){return c.id;}));
+      G.hands[0]=G.hands[0].filter(function(c){return !ids.has(c.id);});
+      G.incoming=inc; G.after=G.phase; G.phase='received';
+    }
+  }
+  G.cursor=0;
+}
+function confirmExchange(){
+  var cards=G.hands[0].filter(function(c){return G.sel.has(c.id);});
+  if(cards.length!==G.exNeed){ log('НУЖНО РОВНО '+G.exNeed); sfx('err'); return false; }
+  give(0,G.exTo,cards); G.sel=new Set(); G.phase='play';
+  log(NAMES[G.cur]+' НАЧИНАЕТ'); sfx('play');
+  return true;
+}
+
+/* ================= browser side ================= */
+var HAS_DOM=typeof document!=='undefined' && !!document.getElementById && !!document.getElementById('screen');
+var PAL=['#0f380f','#306230','#8bac0f','#9bbc0f'];
+var soundOn=true, AC=null, looping=false;
+
+function flashScreen(){
+  if(SIM||!HAS_DOM) return;
+  var el=document.getElementById('screen'); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+}
+function announce(s){ if(HAS_DOM){ var l=document.getElementById('live'); if(l) l.textContent=s; } }
+function beep(f,d,vol,when){
+  if(!soundOn||!HAS_DOM) return;
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    var t=AC.currentTime+(when||0), o=AC.createOscillator(), g=AC.createGain();
+    o.type='square'; o.frequency.value=f; g.gain.setValueAtTime(vol||0.04,t);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+d); o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t+d+0.02);
+  }catch(e){}
+}
+function sfx(k){
+  if(SIM) return;
+  var s={move:[[880,.03,.025]],sel:[[1320,.05]],play:[[523,.06],[784,.09,.04,.06]],cpu:[[392,.05,.025]],
+    pass:[[220,.08]],err:[[140,.14,.05]],rev:[[988,.08,.04,0],[784,.08,.04,.08],[587,.08,.04,.16],[392,.16,.04,.24]],
+    win:[[523,.1,.04,0],[659,.1,.04,.1],[784,.1,.04,.2],[1047,.25,.04,.3]],end:[[392,.12,.04,0],[330,.12,.04,.12],[262,.24,.04,.24]],
+    start:[[659,.08,.04,0],[988,.14,.04,.08]]}[k]||[];
+  s.forEach(function(a){beep(a[0],a[1],a[2],a[3]);});
+}
+function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
+
+/* ---- pixel sprites ---- */
+var GLYPH={
+  'A':['.#.','#.#','###','#.#','#.#'],'2':['##.','..#','.#.','#..','###'],'3':['##.','..#','.#.','..#','##.'],
+  '4':['#.#','#.#','###','..#','..#'],'5':['###','#..','##.','..#','##.'],'6':['.##','#..','###','#.#','###'],
+  '7':['###','..#','.#.','.#.','.#.'],'8':['###','#.#','###','#.#','###'],'9':['###','#.#','###','..#','##.'],
+  '10':['#.###','#.#.#','#.#.#','#.#.#','#.###'],'J':['..#','..#','..#','#.#','.#.'],'Q':['.#.','#.#','#.#','##.','.##'],
+  'K':['#.#','#.#','##.','#.#','#.#']};
+var SUIT5={S:['..#..','.###.','#####','..#..','.###.'],H:['##.##','#####','#####','.###.','..#..'],
+  D:['..#..','.###.','#####','.###.','..#..'],C:['.###.','.###.','#####','#.#.#','..#..']};
+var SUIT7={S:['...#...','..###..','.#####.','#######','#######','...#...','..###..'],
+  H:['.##.##.','#######','#######','#######','.#####.','..###..','...#...'],
+  D:['...#...','..###..','.#####.','#######','.#####.','..###..','...#...'],
+  C:['..###..','..###..','##.#.##','#######','##.#.##','...#...','..###..'],
+  J:['...#...','..###..','#######','.#####.','..###..','.##.##.','##...##']};
+var SPR={};
+function canvas(w,h){var c=document.createElement('canvas');c.width=w;c.height=h;return c;}
+function blit(ctx,rows,x,y,col){ctx.fillStyle=col;rows.forEach(function(r,j){for(var i=0;i<r.length;i++) if(r[i]==='#') ctx.fillRect(x+i,y+j,1,1);});}
+function frame(ctx,w,h,fill){ctx.fillStyle=PAL[0];ctx.fillRect(1,0,w-2,h);ctx.fillRect(0,1,w,h-2);ctx.fillStyle=fill;ctx.fillRect(1,1,w-2,h-2);}
+function cardImg(c){
+  var k=c.joker?'JK':c.s+c.r; if(SPR[k]) return SPR[k];
+  var cv=canvas(16,22),x=cv.getContext('2d');
+  frame(x,16,22,PAL[3]);
+  if(c.joker){
+    x.fillStyle=PAL[2]; for(var i=1;i<15;i++) for(var j=1;j<21;j++) if((i+j)%2===0) x.fillRect(i,j,1,1);
+    x.fillStyle=PAL[3]; x.fillRect(1,1,9,7);
+    blit(x,GLYPH.J,2,2,PAL[0]); blit(x,GLYPH.K,6,2,PAL[0]);
+    x.fillStyle=PAL[3]; x.fillRect(5,10,9,9);
+    blit(x,SUIT7.J,6,11,PAL[0]);
+  } else {
+    var col=(c.s==='H'||c.s==='D')?PAL[1]:PAL[0], rk=RANKS[c.r];
+    blit(x,GLYPH[rk],2,2,col); blit(x,SUIT5[c.s],2,8,col); blit(x,SUIT7[c.s],7,13,col);
+  }
+  return SPR[k]=cv.toDataURL();
+}
+function backImg(w,h){
+  var k='B'+w+'x'+h; if(SPR[k]) return SPR[k];
+  var cv=canvas(w,h),x=cv.getContext('2d'); frame(x,w,h,PAL[1]);
+  x.fillStyle=PAL[2]; for(var i=2;i<w-2;i++) for(var j=2;j<h-2;j++) if((i+j)%3===0) x.fillRect(i,j,1,1);
+  return SPR[k]=cv.toDataURL();
+}
+function spriteImg(k,rows){ if(SPR[k]) return SPR[k]; var cv=canvas(rows[0].length,rows.length); blit(cv.getContext('2d'),rows,0,0,PAL[0]); return SPR[k]=cv.toDataURL(); }
+var NEWMARK=['.#.','###','.#.'];
+var ARROW=['#####','.###.','..#..'], CROWN=['#..#..#','##.#.##','#######','#######'];
+
+/* ---- rendering ---- */
+function P(n){return 'calc(var(--u)*'+n+')';}
+function esc(s){return String(s).replace(/[&<>"]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m];});}
+function T(s,x,y,cls){return '<div class="abs t '+(cls||'')+'" style="left:'+P(x)+';top:'+P(y)+'">'+esc(s)+'</div>';}
+function TC(s,y,cls){return T(s,80-s.length*4,y,cls);}
+function I(src,x,y,w,h,extra){return '<img class="abs px '+(extra||'')+'" src="'+src+'" style="left:'+P(x)+';top:'+P(y)+';width:'+P(w)+';height:'+P(h)+'" alt="">';}
+function box(x,y,w,h,cls){return '<div class="abs '+(cls||'box')+'" style="left:'+P(x)+';top:'+P(y)+';width:'+P(w)+';height:'+P(h)+';box-sizing:border-box"></div>';}
+
+function oppHTML(p){
+  var h='',name=NAMES[p],n=G.hands[p].length,fin=G.finished.indexOf(p);
+  if(G.fallen.indexOf(p)>=0) fin=3;
+  var turn=(G.phase==='play'&&G.cur===p&&fin<0);
+  var status=fin>=0?(fin+1)+'-Е':(G.passed[p]?'ПАС':'');
+  var crown=G.prevOrder&&G.prevOrder[0]===p;
+  var cnt=String(n);
+  if(p===2){
+    var nx=80-name.length*4;
+    h+=T(name,nx,11,turn?'inv':''); if(crown) h+=I(spriteImg('crown',CROWN),nx+name.length*8+3,13,7,4);
+    if(fin<0){ var w=7+2+cnt.length*8, x0=80-Math.floor(w/2); h+=I(backImg(7,10),x0,21,7,10)+T(cnt,x0+9,23); }
+    if(status) h+=T(status,fin>=0?80-status.length*4:112,fin>=0?22:23,'mid');
+  } else if(p===1){
+    h+=T(name,3,34,turn?'inv':''); if(crown) h+=I(spriteImg('crown',CROWN),5+name.length*8,36,7,4);
+    if(fin<0) h+=I(backImg(7,10),3,44,7,10)+T(cnt,12,46);
+    if(status) h+=T(status,3,fin>=0?46:58,'mid');
+  } else {
+    var rx=157-name.length*8;
+    h+=T(name,rx,34,turn?'inv':''); if(crown) h+=I(spriteImg('crown',CROWN),rx-10,36,7,4);
+    if(fin<0){ h+=I(backImg(7,10),157-cnt.length*8-9,44,7,10)+T(cnt,157-cnt.length*8,46); }
+    if(status) h+=T(status,157-status.length*8,fin>=0?46:58,'mid');
+  }
+  return h;
+}
+function render(){
+  if(!HAS_DOM) return;
+  var h='';
+  if(G.phase==='title'){
+    h+=TC('ДАЙФУГО',14,'big');
+    h+=TC('ВЕЛИКИЙ БОГАЧ',36,'mid');
+    var fan=[{r:11,s:'S'},{r:10,s:'H'},{r:13,s:'J',joker:true},{r:9,s:'D'},{r:12,s:'C'}];
+    fan.forEach(function(c,i){ h+=I(cardImg(c),80-8+(i-2)*14,52+Math.abs(i-2)*3,16,22); });
+    var items=['УРОВЕНЬ: '+LEVELS[G.level],'СВЕРЖЕНИЕ: '+(G.miyako?'ВКЛ':'ВЫКЛ')];
+    items.forEach(function(s,i){
+      var y=88+i*12;
+      h+='<div class="abs t menu" data-m="'+i+'" style="left:'+P(4)+';top:'+P(y)+';cursor:pointer">'+esc((G.menu===i?'>':' ')+s)+'</div>';
+    });
+    h+=TC('НАЖМИ START',124,'blink');
+  } else if(G.phase==='received'){
+    var inc=G.incoming;
+    h+=box(0,0,160,144);
+    h+=TC('ОБМЕН КАРТАМИ',5);
+    var row=function(cards,y){ var w=16+(cards.length-1)*20, x0=80-Math.floor(w/2); cards.forEach(function(c,i){ h+=I(cardImg(c),x0+i*20,y,16,22); }); };
+    var y=20;
+    if(inc.gave){ h+=TC('ТЫ ОТДАЕШЬ: '+NAMES[inc.from],y,'mid'); row(inc.gave,y+11); y+=42; }
+    h+=TC('ТЕБЕ ДАЕТ: '+NAMES[inc.from],y); row(inc.got,y+11);
+    if(!inc.gave) h+=TC(inc.got.length>1?'(САМЫЕ СИЛЬНЫЕ)':'(САМАЯ СИЛЬНАЯ)',y+40,'mid');
+    h+=TC('A: ВЗЯТЬ В РУКУ',126,'blink');
+  } else if(G.phase==='play'||G.phase==='exchange'){
+    if(G.rev){
+      h+='<div class="abs bar" style="left:0;top:0;width:'+P(160)+';height:'+P(10)+'"></div>'+TC('РЕВ: 3 СИЛЬНЕЕ 2',1,'lt');
+    } else {
+      h+=T('РАУНД '+G.round+'/'+ROUNDS,1,1);
+      h+=T('ОЧКИ '+G.scores[0],159-('ОЧКИ '+G.scores[0]).length*8,1,'mid');
+    }
+    h+=oppHTML(1)+oppHTML(2)+oppHTML(3);
+    // table
+    if(G.pile){
+      var pc=G.pile.cards, pw=16+(pc.length-1)*10, px0=80-Math.floor(pw/2);
+      pc.forEach(function(c,i){ h+=I(cardImg(c),px0+i*10,35,16,22,G.pileDim?'dim':''); });
+      var who=G.pile.by===0?'ТЫ':NAMES[G.pile.by];
+      if(!G.pileDim) h+=TC(who,59,'mid');
+    } else h+=box(71,35,18,24,'slot');
+    // message box
+    h+=box(1,68,158,27);
+    h+=T(G.log[0]||'',5,72)+T(G.log[1]||'',5,83);
+    // hand
+    var hand=G.hands[0], n=hand.length;
+    if(n){
+      if(G.cursor>=n) G.cursor=n-1;
+      var step=n>1?Math.min(11,Math.floor(140/(n-1))):0, tot=16+step*(n-1), x0=Math.floor((160-tot)/2);
+      hand.forEach(function(c,i){
+        var sel=G.sel.has(c.id);
+        h+='<img class="abs px card" data-i="'+i+'" src="'+cardImg(c)+'" style="left:'+P(x0+i*step)+';top:'+P(sel?106:112)+';width:'+P(16)+';height:'+P(22)+'" alt="">';
+        if(G.newIds&&G.newIds.has(c.id)) h+=I(spriteImg('new',NEWMARK),x0+i*step+Math.floor((i===n-1?16:Math.min(step,16))/2)-1,sel?102:108,3,3);
+      });
+      var myTurn=(G.phase==='exchange')||(G.phase==='play'&&G.cur===0);
+      if(myTurn){ var vis=G.cursor===n-1?16:Math.min(step,16); h+=I(spriteImg('arrow',ARROW),x0+G.cursor*step+Math.floor(vis/2)-2,97,5,3); }
+    }
+    // footer hint
+    var hint='';
+    if(G.phase==='exchange') hint='ОТДАТЬ: '+G.sel.size+'/'+G.exNeed+' START';
+    else if(G.fallen.indexOf(0)>=0) hint='СВЕРЖЕН. ЖДЕМ';
+    else if(!isActive(0)) hint=(G.finished.indexOf(0)+1)+'-Е МЕСТО. ЖДЕМ';
+    else if(G.cur===0) hint=G.sel.size?'START: СЫГРАТЬ':'A: ВЫБОР  B: ПАС';
+    if(hint) h+=TC(hint,136,'mid');
+  } else {
+    var end=G.phase==='matchEnd';
+    h+=box(0,0,160,144);
+    if(!end){
+      h+=TC('РАУНД '+G.round+': ИТОГ',6);
+      G.prevOrder.forEach(function(p,i){
+        var y=24+i*16;
+        h+=T(TITLES[i],4,y,i===0?'inv':'')+T(NAMES[p],84,y)+T(String(G.scores[p]),156-String(G.scores[p]).length*8,y,'mid');
+      });
+      h+=TC('ОЧКИ: 3-2-1-0',92,'mid');
+      h+=TC('ДАЛЕЕ ОБМЕН КАРТАМИ',104,'mid');
+      h+=TC('START: ДАЛЕЕ',124,'blink');
+    } else {
+      h+=TC('ИТОГ МАТЧА',6);
+      var order=[0,1,2,3].sort(function(a,b){return G.scores[b]-G.scores[a];});
+      order.forEach(function(p,i){
+        var y=24+i*16;
+        h+=T((i+1)+'. '+NAMES[p],12,y,i===0?'inv':'')+T(String(G.scores[p]),148-String(G.scores[p]).length*8,y);
+      });
+      var top=G.scores[order[0]], win=order.filter(function(p){return G.scores[p]===top;});
+      h+=TC(win.indexOf(0)>=0?(win.length>1?'НИЧЬЯ НА ВЕРШИНЕ':'ПОБЕДА ЗА ТОБОЙ!'):'ПОБЕДА: '+NAMES[order[0]],96);
+      h+=TC('START: ЕЩЕ РАЗ',124,'blink');
+    }
+  }
+  document.getElementById('screen').innerHTML=h;
+}
+
+/* ---- turn loop ---- */
+async function loop(){
+  if(looping) return; looping=true;
+  try{
+    while(G.phase==='play' && G.cur!==0){
+      var t0=now(), p=G.cur, c=cpuPick(p);
+      await sleep(Math.max(80,(isActive(0)?800:450)-(now()-t0)));
+      if(G.phase!=='play'||G.cur!==p) break;
+      if(c) doPlay(p,c); else doPass(p);
+      render();
+    }
+  } finally { looping=false; }
+  if(G.phase==='play' && G.cur===0){
+    log(legalMoves(0).length? (G.trick?'> ТВОЙ ХОД':'> ТЫ НАЧИНАЕШЬ') : '> НЕТ ХОДА: B-ПАС');
+    G.cursor=Math.min(G.cursor,G.hands[0].length-1);
+    render();
+  }
+}
+
+/* ---- input ---- */
+function toggleSel(i,force){
+  var c=G.hands[0][i]; if(!c) return;
+  var on=force===undefined?!G.sel.has(c.id):force;
+  if(on){
+    if(G.phase==='exchange' && G.sel.size>=G.exNeed && !G.sel.has(c.id)){ sfx('err'); return; }
+    G.sel.add(c.id);
+  } else G.sel.delete(c.id);
+  sfx('sel');
+}
+function humanPlay(){
+  var cards=G.hands[0].filter(function(c){return G.sel.has(c.id);});
+  var info=comboInfo(cards);
+  if(!info.ok){ log('ТАК НЕЛЬЗЯ:'); log(info.err); sfx('err'); return; }
+  if(G.trick && info.count!==G.trick.count){ log('ТАК НЕЛЬЗЯ:'); log('НУЖНО КАРТ: '+G.trick.count); sfx('err'); return; }
+  if(!canBeat(info,G.trick)){ log('ТАК НЕЛЬЗЯ:'); log('НЕ СИЛЬНЕЕ СТОЛА'); sfx('err'); return; }
+  G.sel=new Set(); doPlay(0,cards); render(); loop();
+}
+function changeSetting(i,d){
+  if(i===0) G.level=(G.level+3+d)%3; else G.miyako=!G.miyako;
+  sfx('sel');
+  try{ localStorage.setItem('daifugo-settings',JSON.stringify({level:G.level,miyako:G.miyako})); }catch(e){}
+}
+function press(k){
+  var myTurn=G.phase==='play'&&G.cur===0&&isActive(0)&&!looping;
+  var handMode=myTurn||G.phase==='exchange';
+  var n=G.hands[0].length;
+  if(k==='select'){ soundOn=!soundOn; if(soundOn) sfx('sel'); var l=document.getElementById('led'); l.style.opacity=soundOn?1:.35; announce(soundOn?'Звук включён':'Звук выключен'); return; }
+  if(G.phase==='received'){ if(k==='a'||k==='start'){ takeIncoming(); render(); loop(); } return; }
+  if(k==='start'){
+    if(G.phase==='title'){ sfx('start'); startMatch(); render(); loop(); return; }
+    if(G.phase==='roundEnd'){ sfx('start'); startRound(); render(); loop(); return; }
+    if(G.phase==='matchEnd'){ sfx('start'); G.phase='title'; render(); return; }
+    if(G.phase==='exchange'){ if(confirmExchange()){ render(); loop(); } else render(); return; }
+    if(myTurn){ humanPlay(); render(); }
+    return;
+  }
+  if(G.phase==='title'){
+    if(k==='up'||k==='down'){ G.menu=1-G.menu; sfx('move'); }
+    else if(k==='left'||k==='right'||k==='a'){ changeSetting(G.menu,k==='left'?-1:1); }
+    render(); return;
+  }
+  if(!handMode) return;
+  if(k==='left'&&n){ G.cursor=(G.cursor-1+n)%n; sfx('move'); }
+  else if(k==='right'&&n){ G.cursor=(G.cursor+1)%n; sfx('move'); }
+  else if(k==='a'||k==='up'){ toggleSel(G.cursor, k==='up'?true:undefined); }
+  else if(k==='down'){ toggleSel(G.cursor,false); }
+  else if(k==='b'){
+    if(G.sel.size){ G.sel=new Set(); sfx('pass'); }
+    else if(myTurn){
+      if(!G.trick){ log('СТОЛ ПУСТ: ХОДИ'); sfx('err'); }
+      else { doPass(0); render(); loop(); return; }
+    }
+  }
+  render();
+}
+
+if(HAS_DOM){
+  var fit=function(){
+    var vw=document.documentElement.clientWidth, vh=window.innerHeight;
+    var phone=vw<560 && vh>vw;
+    document.documentElement.classList.toggle('phone',phone);
+    var W=phone?180:208, H=phone?282:300;
+    var u=Math.min((vw-32)/W,(vh-32)/H);
+    if(phone) u=Math.max(1.3,Math.min(3,(vw-32)/W, Math.max(u,(vw-32)/W*0.9)));
+    else u = u>=2 ? Math.min(3,Math.floor(u)) : Math.max(1.3,Math.min(u,(vw-32)/W));
+    document.documentElement.style.setProperty('--u',u+'px');
+  };
+  fit(); window.addEventListener('resize',fit);
+  var KEYMAP={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down',z:'a',Z:'a','я':'a','Я':'a',' ':'a',
+    x:'b',X:'b','ч':'b','Ч':'b',Backspace:'b',Escape:'b',Enter:'start',Shift:'select'};
+  document.addEventListener('keydown',function(e){
+    var k=KEYMAP[e.key]; if(!k||e.metaKey||e.ctrlKey||e.altKey) return;
+    if(e.target&&e.target.tagName==='BUTTON'&&(e.key===' '||e.key==='Enter')) { e.preventDefault(); }
+    e.preventDefault(); if(e.repeat&&k!=='left'&&k!=='right') return; press(k);
+    var b=document.querySelector('[data-k="'+k+'"]'); if(b){b.classList.add('on');setTimeout(function(){b.classList.remove('on');},110);}
+  });
+  document.querySelectorAll('[data-k]').forEach(function(b){
+    b.addEventListener('pointerdown',function(e){e.preventDefault();press(b.dataset.k);});
+    b.addEventListener('click',function(e){ if(e.detail===0) press(b.dataset.k); }); // keyboard activation
+  });
+  document.getElementById('screen').addEventListener('pointerdown',function(e){
+    var m=e.target.closest('.menu');
+    if(m&&G.phase==='title'){ G.menu=+m.dataset.m; changeSetting(G.menu,1); render(); return; }
+    var t=e.target.closest('.card');
+    if(t){ var myTurn=(G.phase==='play'&&G.cur===0&&!looping)||G.phase==='exchange'; if(!myTurn) return;
+      G.cursor=+t.dataset.i; toggleSel(G.cursor); render(); return; }
+    if(G.phase==='title'||G.phase==='roundEnd'||G.phase==='matchEnd'||G.phase==='received') press('start');
+  });
+  try{ var st=JSON.parse(localStorage.getItem('daifugo-settings')||'null'); if(st){ if(st.level>=0&&st.level<=2) G.level=st.level; G.miyako=st.miyako!==false; } }catch(e){}
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(render);
+  render();
+}
+</script>
+
+</body>
+</html>
