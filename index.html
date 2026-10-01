@@ -639,10 +639,21 @@ function flashScreen(){
   var el=document.getElementById('screen'); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
 }
 function announce(s){ if(HAS_DOM){ var l=document.getElementById('live'); if(l) l.textContent=s; } }
+// iPhone: play game sounds even with the ring/silent switch on (Safari 16.4+), and unlock audio on a real tap.
+function initAudio(){
+  try{ if(navigator.audioSession) navigator.audioSession.type='playback'; }catch(e){}
+  if(!HAS_DOM) return;
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    if(AC.state!=='running') AC.resume();
+    var b=AC.createBuffer(1,1,22050), src=AC.createBufferSource(); src.buffer=b; src.connect(AC.destination); src.start(0);
+  }catch(e){}
+}
 function beep(f,d,vol,when){
   if(!soundOn||!HAS_DOM) return;
   try{
     AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    if(AC.state==='suspended') AC.resume();
     var t=AC.currentTime+(when||0), o=AC.createOscillator(), g=AC.createGain();
     o.type='square'; o.frequency.value=f; g.gain.setValueAtTime(vol||0.04,t);
     g.gain.exponentialRampToValueAtTime(0.0001,t+d); o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t+d+0.02);
@@ -911,6 +922,8 @@ if(HAS_DOM){
     document.documentElement.style.setProperty('--u',u+'px');
   };
   fit(); window.addEventListener('resize',fit);
+  try{ if(navigator.audioSession) navigator.audioSession.type='playback'; }catch(e){}
+  ['touchend','click','keydown'].forEach(function(ev){ document.addEventListener(ev,initAudio,{passive:true,capture:true}); });
   var KEYMAP={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down',z:'a',Z:'a','я':'a','Я':'a',' ':'a',
     x:'b',X:'b','ч':'b','Ч':'b',Backspace:'b',Escape:'b',Enter:'start',Shift:'select'};
   document.addEventListener('keydown',function(e){
