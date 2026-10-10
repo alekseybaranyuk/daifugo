@@ -10,7 +10,7 @@
 
 <p>
   <img src="screenshots/title.png" width="400" alt="Титульный экран с выбором уровня">
-  <img src="screenshots/play.png" width="400" alt="Партия: на столе пара шестёрок, игрок выбрал пару восьмёрок">
+  <img src="screenshots/play.png" width="400" alt="Партия: игрок выбирает пару, чтобы перебить пару соперника">
 </p>
 <p>
   <img src="screenshots/rev.png" width="400" alt="Революция: порядок силы карт перевернулся">
