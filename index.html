@@ -749,7 +749,7 @@ function render(){
   if(!HAS_DOM) return;
   var h='';
   if(G.phase==='title'){
-    h+=TC('ДАЙФУГО',14,'big');
+    h+=T('ДАЙФУГО',80-7*8,14,'big');
     h+=TC('ВЕЛИКИЙ БОГАЧ',36,'mid');
     var fan=[{r:11,s:'S'},{r:10,s:'H'},{r:13,s:'J',joker:true},{r:9,s:'D'},{r:12,s:'C'}];
     fan.forEach(function(c,i){ h+=I(cardImg(c),80-8+(i-2)*14,52+Math.abs(i-2)*3,16,22); });
